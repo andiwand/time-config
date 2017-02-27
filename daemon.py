@@ -41,7 +41,7 @@ if ntp_distribution is not None:
 ptp_distribution = root.find("time-distribution").find("ptp-distribution")
 if ptp_distribution is not None:
     interface = ptp_distribution.find("interface").text
-    ptp_master_args = ["ptpd", "-i", interface, "-M", "-n"]
+    ptp_args = ["ptpd", "-i", interface, "-M", "-n"]
 
 if ntp_conf:
     with open(NTP_CONF, "w") as f:
