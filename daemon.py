@@ -15,8 +15,8 @@ tree = ET.parse(args.config)
 root = tree.getroot()
 
 ntp_conf = []
-ptp_args = ["ptpd"]
-ptp_enabled = False
+ptp_master_args = []
+ptp_slave_args = []
 
 method = root.find("time-source").find("method").text
 if method == "ntp":
@@ -28,13 +28,20 @@ if method == "ntp":
         ntp_conf.append("driftfile %s" % ntp.find("driftfile").text)
 elif method == "ptp":
     ptp = root.find("time-source").find("ptp-source")
-    ptp_enabled = True
+    interface = ptp.find("interface").text
+    logfile = ptp.find("logfile").text
+    ptp_slave_args = ["ptpd", "-i", interface, "-g", "-y", "0", "-D", "-f", logfile]
 
 ntp_distribution = root.find("time-distribution").find("ntp-distribution")
 if ntp_distribution is not None:
     stratum = ntp_distribution.find("stratum").text
     ntp_conf.append("server 127.127.1.0")
     ntp_conf.append("fudge 127.127.1.0 stratum %s" % stratum)
+
+ptp_distribution = root.find("time-distribution").find("ptp-distribution")
+if ptp_distribution is not None:
+    interface = ptp_distribution.find("interface").text
+    ptp_master_args = ["ptpd", "-i", interface, "-s", "1", "-n"]
 
 if ntp_conf:
     with open(NTP_CONF, "w") as f:
@@ -43,6 +50,9 @@ if ntp_conf:
             f.write("\n")
     ntp = subprocess.Popen(["ntpd", "-c", "ntp.conf"])
 
-if ptp_enabled:
-    ptp = subprocess.Popen(ptp_args)
+if ptp_master_args:
+    ptp_master = subprocess.Popen(ptp_master_args)
+
+if ptp_slave_args:
+    ptp_slave = subprocess.Popen(ptp_slave_args)
 
