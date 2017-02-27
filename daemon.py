@@ -54,7 +54,8 @@ if ntp_conf:
             f.write(line)
             f.write("\n")
     # TODO: config uid
-    ntp = subprocess.Popen(["/usr/sbin/ntpd", "-g", "-c", "ntp.conf"])
+    configfile = os.path.abspath(NTP_CONF)
+    ntp = subprocess.Popen(["ntpd", "-g", "-c", configfile])
 
 if ptp_args:
     ptp = subprocess.Popen(ptp_args)
