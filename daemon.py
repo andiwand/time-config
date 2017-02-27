@@ -37,6 +37,11 @@ if ntp_distribution is not None:
     stratum = ntp_distribution.find("stratum").text
     ntp_conf.append("server 127.127.1.0")
     ntp_conf.append("fudge 127.127.1.0 stratum %s" % stratum)
+    ntp_conf.append("server 127.127.1.0")
+    ntp_conf.append("restrict -4 default kod nomodify notrap nopeer noquery")
+    ntp_conf.append("restrict -6 default kod nomodify notrap nopeer noquery")
+    ntp_conf.append("restrict 127.0.0.1")
+    ntp_conf.append("restrict ::1")
 
 ptp_distribution = root.find("time-distribution").find("ptp-distribution")
 if ptp_distribution is not None:
@@ -48,8 +53,8 @@ if ntp_conf:
         for line in ntp_conf:
             f.write(line)
             f.write("\n")
-    # TODO: config pid file, uid
-    ntp = subprocess.Popen(["ntpd", "-p", "/var/run/ntpd.pid", "-g", "-c", "ntp.conf", "-u", "106:111"])
+    # TODO: config uid
+    ntp = subprocess.Popen(["/usr/sbin/ntpd", "-g", "-c", "ntp.conf"])
 
 if ptp_args:
     ptp = subprocess.Popen(ptp_args)
