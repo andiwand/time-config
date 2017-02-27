@@ -48,7 +48,8 @@ if ntp_conf:
         for line in ntp_conf:
             f.write(line)
             f.write("\n")
-    ntp = subprocess.Popen(["ntpd", "-c", "ntp.conf"])
+    # TODO: config pid file
+    ntp = subprocess.Popen(["ntpd", "-p", "/var/run/ntpd.pid", "-g", "-c", "ntp.conf"])
 
 if ptp_args:
     ptp = subprocess.Popen(ptp_args)
