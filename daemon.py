@@ -15,8 +15,7 @@ tree = ET.parse(args.config)
 root = tree.getroot()
 
 ntp_conf = []
-ptp_master_args = []
-ptp_slave_args = []
+ptp_args = []
 
 method = root.find("time-source").find("method").text
 if method == "ntp":
@@ -30,7 +29,8 @@ elif method == "ptp":
     ptp = root.find("time-source").find("ptp-source")
     interface = ptp.find("interface").text
     logfile = ptp.find("logfile").text
-    ptp_slave_args = ["ptpd", "-i", interface, "-g", "-y", "0", "-D", "-f", logfile]
+    statisticsfile = ptp.find("statisticsfile").text
+    ptp_args = ["ptpd", "-i", interface, "-s", "-r", "0", "-f", logfile, "-S", statisticsfile]
 
 ntp_distribution = root.find("time-distribution").find("ntp-distribution")
 if ntp_distribution is not None:
@@ -41,7 +41,7 @@ if ntp_distribution is not None:
 ptp_distribution = root.find("time-distribution").find("ptp-distribution")
 if ptp_distribution is not None:
     interface = ptp_distribution.find("interface").text
-    ptp_master_args = ["ptpd", "-i", interface, "-s", "1", "-n"]
+    ptp_master_args = ["ptpd", "-i", interface, "-M", "-n"]
 
 if ntp_conf:
     with open(NTP_CONF, "w") as f:
@@ -50,9 +50,6 @@ if ntp_conf:
             f.write("\n")
     ntp = subprocess.Popen(["ntpd", "-c", "ntp.conf"])
 
-if ptp_master_args:
-    ptp_master = subprocess.Popen(ptp_master_args)
-
-if ptp_slave_args:
-    ptp_slave = subprocess.Popen(ptp_slave_args)
+if ptp_args:
+    ptp = subprocess.Popen(ptp_args)
 
