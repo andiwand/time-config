@@ -55,7 +55,7 @@ def parse_config(args):
                     # http://doc.ntp.org/current-stable/drivers/driver1.html
                     ntp_config.append("server 127.127.1.%s minpoll 4 maxpoll 4%s" % (unit, prefer))
                     ntp_config.append("fudge 127.127.1.%s stratum %s" % (unit, stratum))
-                if driver == "pps":
+                elif driver == "pps":
                     # http://doc.ntp.org/current-stable/drivers/driver22.html
                     ntp_config.append("server 127.127.22.%s minpoll 4 maxpoll 4%s" % (unit, prefer))
                     ntp_config.append("fudge 127.127.22.%s stratum %s" % (unit, stratum))
