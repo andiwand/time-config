@@ -10,8 +10,6 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 SYSLOG_PREFIX = "pd time deamon: "
-NTP_PID = "ntp.pid"
-NTP_CONFIG = "ntp.conf"
 
 def log(msg):
     syslog.syslog("%s%s" % (SYSLOG_PREFIX, msg))
@@ -22,9 +20,24 @@ def parse_config(args):
     tree = ET.parse(args.config)
     root = tree.getroot()
 
+    files = {
+        "ntp": { "config": "ntp.config", "log": "ntp.log", "drift": "ntp.drift" },
+        "ptp": { "log": "ptp.log", "lock": "ptp.lock", "statistics": "ptp.statistics" }
+    }
+    directory = os.getcwd()
+
+    if root.find("files") is not None:
+        directory = root.find("files").text
+
+    directory = os.path.abspath(directory)
+    for mf in files:
+        for f in files[mf]:
+            if not os.path.isabs(files[mf][f]): files[mf][f] = os.path.join(directory, files[mf][f])
+
     ntp_config = []
-    ntp_args = [ "ntpd", "-g", "-c", os.path.abspath(NTP_CONFIG) ]
+    ntp_args = [ "ntpd", "-g", "-c", files["ntp"]["config"], "-f", files["ntp"]["drift"], "-l", files["ntp"]["log"] ]
     ptp_args = []
+    ptp_args_suf = [ "-f", files["ptp"]["log"], "-l", files["ptp"]["lock"], "-S", files["ptp"]["statistics"] ]
 
     method = root.find("time-source").find("method").text
     log("configuring method %s..." % method)
@@ -58,14 +71,10 @@ def parse_config(args):
                 log("unknown clock source.")
                 return None
             prefer = ""
-        if ntp.find("driftfile") is not None:
-            ntp_config.append("driftfile %s" % ntp.find("driftfile").text)
     elif method == "ptp":
         ptp = root.find("time-source").find("ptp-source")
         interface = ptp.find("interface").text
-        logfile = ptp.find("logfile").text
-        statisticsfile = ptp.find("statisticsfile").text
-        ptp_args = ["ptpd", "-i", interface, "-s", "-y", "-r", "0", "-f", logfile, "-S", statisticsfile]
+        ptp_args = [ "ptpd", "-i", interface, "-s", "-y", "-r", "0" ] + ptp_args_suf
     else:
         log("unknown method.")
         return None
@@ -82,30 +91,32 @@ def parse_config(args):
     if ptp_dist is not None:
         log("configuring ptp distribution...")
         interface = ptp_dist.find("interface").text
-        ptp_args = [ "ptpd", "-i", interface, "-M", "-n" ]
+        ptp_args = [ "ptpd", "-i", interface, "-M", "-n" ] + ptp_args_suf
 
-    ntp = { "config": ntp_config, "args": ntp_args } if ntp_config else None
-    ptp = { "args": ptp_args } if ptp_args else None
+    ntp = { "files": files["ntp"], "config": ntp_config, "args": ntp_args } if ntp_config else None
+    ptp = { "files": files["ptp"], "args": ptp_args } if ptp_args else None
 
     return { "ntp": ntp, "ptp": ptp }
 
 def start_ntp(args, config):
-    with open(NTP_CONFIG, "w") as f:
+    with open(config["files"]["config"], "w") as f:
         for line in config["config"]:
             f.write(line)
             f.write("\n")
     # TODO: config uid
-    if args.dry_run:
-        log("skipping ntp daemon (dry run)...")
-        return 0
     log("starting ntp daemon...")
+    log(" ".join(config["args"]))
+    if args.dry_run:
+        log("skipping (dry run)...")
+        return 0
     return subprocess.call(config["args"])
 
 def start_ptp(args, config):
-    if args.dry_run:
-        log("skipping ptp daemon (dry run)...")
-        return 0
     log("starting ptp daemon...")
+    log(" ".join(config["args"]))
+    if args.dry_run:
+        log("skipping (dry run)...")
+        return 0
     return subprocess.call(config["args"])
 
 def parse_args(args=None):
