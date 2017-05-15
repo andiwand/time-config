@@ -39,9 +39,11 @@ def parse_config(args):
     ptp_args = []
     ptp_args_suf = [ "-f", files["ptp"]["log"], "-l", files["ptp"]["lock"], "-S", files["ptp"]["statistics"] ]
 
-    method = root.find("time-source").find("method").text
+    method = root.find("time-source").find("method").text if root.find("time-source").find("method") is not None else "none"
     log("configuring method %s..." % method)
-    if method == "ntp":
+    if method == "none":
+        pass
+    elif method == "ntp":
         ntp = root.find("time-source").find("ntp-source")
         prefer = " prefer"
         for source in ntp.find("sources"):
