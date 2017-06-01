@@ -35,7 +35,7 @@ def parse_config(args):
             if not os.path.isabs(files[mf][f]): files[mf][f] = os.path.join(directory, files[mf][f])
 
     ntp_config = []
-    ntp_args = [ "ntpd", "-g", "-c", files["ntp"]["config"], "-f", files["ntp"]["drift"], "-l", files["ntp"]["log"] ]
+    ntp_args = [ "ntpd", "-g", "-c", files["ntp"]["config"], "-f", files["ntp"]["drift"], "-l", files["ntp"]["log"], "-d", "2" ]
     ptp_args = []
     ptp_args_suf = [ "-f", files["ptp"]["log"], "-l", files["ptp"]["lock"], "-S", files["ptp"]["statistics"] ]
 
