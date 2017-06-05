@@ -61,12 +61,15 @@ def parse_config(args):
                     # http://doc.ntp.org/current-stable/drivers/driver22.html
                     ntp_config.append("server 127.127.22.%s minpoll 4 maxpoll 4 iburst true%s" % (unit, prefer))
                     ntp_config.append("fudge 127.127.22.%s stratum %s" % (unit, stratum))
+                    ntp_config.append("fudge 127.127.22.%s flag3 1" % unit) # enable kernel PPS discipline
                 elif driver == "nmea":
                     # http://doc.ntp.org/current-stable/drivers/driver20.html
                     ntp_config.append("server 127.127.20.%s mode 17 minpoll 4 maxpoll 4 iburst true%s" % (unit, prefer))
-                    ntp_config.append("fudge 127.127.20.%s flag1 1" % unit) # enable PPS
-                    ntp_config.append("fudge 127.127.20.%s time2 0.4" % unit) # serial delay
                     ntp_config.append("fudge 127.127.20.%s stratum %s" % (unit, stratum))
+                    # TODO: option to enable pps
+                    ntp_config.append("fudge 127.127.20.%s flag1 1" % unit) # enable PPS
+                    ntp_config.append("fudge 127.127.20.%s flag3 1" % unit) # kernel discipline
+                    ntp_config.append("fudge 127.127.20.%s time2 0.4" % unit) # serial delay
                 else:
                     log("unknown reference clock.")
                     return None
