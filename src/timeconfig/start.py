@@ -4,6 +4,7 @@
 
 import os
 import sys
+import pwd
 import argparse
 import syslog
 import subprocess
@@ -21,8 +22,8 @@ def parse_config(args):
     root = tree.getroot()
 
     files = {
-        "ntp": { "config": "ntp.config", "log": "ntp.log", "drift": "ntp.drift" },
-        "ptp": { "log": "ptp.log", "lock": "ptp.lock", "statistics": "ptp.statistics" }
+        "ntp": { "config": "ntp.config", "pid": "/var/run/ntpd.pid", "drift": "/var/lib/ntp/drift" },
+        "ptp": { "log": "/var/log/ptp.log", "lock": "/var/run/ptpd.lock", "statistics": "/var/log/ptp.stats" }
     }
     directory = os.getcwd()
 
@@ -34,10 +35,10 @@ def parse_config(args):
         for f in files[mf]:
             if not os.path.isabs(files[mf][f]): files[mf][f] = os.path.join(directory, files[mf][f])
 
+    ntp_user = "%s:%s" % (pwd.getpwnam("ntp").pw_uid, pwd.getpwnam("ntp").pw_gid)
     ntp_config = []
-    ntp_args = [ "ntpd", "-g", "-c", files["ntp"]["config"], "-f", files["ntp"]["drift"], "-l", files["ntp"]["log"] ]
-    ptp_args = []
-    ptp_args_suf = [ "-f", files["ptp"]["log"], "-l", files["ptp"]["lock"], "-S", files["ptp"]["statistics"] ]
+    ntp_args = [ "ntpd", "-g", "-p", files["ntp"]["pid"], "-u", ntp_user, "-c", files["ntp"]["config"], "-f", files["ntp"]["drift"] ]
+    ptp_args = [ "ptpd", "-i", interface, "-f", files["ptp"]["log"], "-l", files["ptp"]["lock"], "-S", files["ptp"]["statistics"] ]
 
     method = root.find("time-source").find("method").text if root.find("time-source").find("method") is not None else "none"
     log("configuring method %s..." % method)
@@ -80,7 +81,7 @@ def parse_config(args):
     elif method == "ptp":
         ptp = root.find("time-source").find("ptp-source")
         interface = ptp.find("interface").text
-        ptp_args = [ "ptpd", "-i", interface, "-s", "-y", "-r", "0" ] + ptp_args_suf
+        ptp_args += [ "-s", "-y", "-r", "0" ]
     else:
         log("unknown method.")
         return None
@@ -95,9 +96,10 @@ def parse_config(args):
 
     ptp_dist = root.find("time-distribution").find("ptp-distribution")
     if ptp_dist is not None:
+        # TODO: error if ptp source
         log("configuring ptp distribution...")
         interface = ptp_dist.find("interface").text
-        ptp_args = [ "ptpd", "-i", interface, "-M", "-n" ] + ptp_args_suf
+        ptp_args += [ "-M", "-n" ]
 
     ntp = { "files": files["ntp"], "config": ntp_config, "args": ntp_args } if ntp_config else None
     ptp = { "files": files["ptp"], "args": ptp_args } if ptp_args else None
@@ -109,12 +111,15 @@ def start_ntp(args, config):
         for line in config["config"]:
             f.write(line)
             f.write("\n")
-    # TODO: config uid
-    log("starting ntp daemon...")
-    log(" ".join(config["args"]))
+    log("starting ntp...")
     if args.dry_run:
         log("skipping (dry run)...")
         return 0
+    log("starting ntp one-shot sync...")
+    err = subprocess.call(config["args"] + [ "-q", ])
+    if err: return err 
+    log("starting ntp daemon...")
+    log(" ".join(config["args"]))
     return subprocess.call(config["args"])
 
 def start_ptp(args, config):
