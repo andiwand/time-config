@@ -102,7 +102,7 @@ def parse_config(args):
         ptp_args += [ "-i", interface, "-M", "-n" ]
 
     ntp = { "files": files["ntp"], "config": ntp_config, "args": ntp_args } if ntp_config else None
-    ptp = { "files": files["ptp"], "args": ptp_args } if ptp_args else None
+    ptp = { "files": files["ptp"], "args": ptp_args } if "-i" in ptp_args else None
 
     return { "ntp": ntp, "ptp": ptp }
 
