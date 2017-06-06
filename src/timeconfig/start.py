@@ -45,6 +45,7 @@ def parse_config(args):
     if method == "none":
         pass
     elif method == "ntp":
+        ntp_config.append("tos mindist 0.4") # TODO: check vaule
         ntp = root.find("time-source").find("ntp-source")
         prefer = " prefer"
         for source in ntp.find("sources"):
