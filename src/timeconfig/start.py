@@ -117,6 +117,8 @@ def start_ntp(args, config):
     if args.dry_run:
         log("skipping (dry run)...")
         return 0
+    log("kill old ntp deamon...")
+    subprocess.call([ "killall", "ntpd" ])
     log("starting ntp one-shot sync...")
     err = subprocess.call(config["args"] + [ "-q", ])
     if err: return err 
@@ -125,11 +127,14 @@ def start_ntp(args, config):
     return subprocess.call(config["args"])
 
 def start_ptp(args, config):
-    log("starting ptp daemon...")
+    log("starting ptp...")
     log(" ".join(config["args"]))
     if args.dry_run:
         log("skipping (dry run)...")
         return 0
+    log("kill old ptp deamon...")
+    subprocess.call([ "killall", "ptpd" ])
+    log("starting ptp daemon...")
     return subprocess.call(config["args"])
 
 def parse_args(args=None):
