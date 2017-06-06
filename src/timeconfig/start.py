@@ -38,7 +38,7 @@ def parse_config(args):
     ntp_user = "%s:%s" % (pwd.getpwnam("ntp").pw_uid, pwd.getpwnam("ntp").pw_gid)
     ntp_config = []
     ntp_args = [ "ntpd", "-g", "-p", files["ntp"]["pid"], "-u", ntp_user, "-c", files["ntp"]["config"], "-f", files["ntp"]["drift"] ]
-    ptp_args = [ "ptpd", "-i", interface, "-f", files["ptp"]["log"], "-l", files["ptp"]["lock"], "-S", files["ptp"]["statistics"] ]
+    ptp_args = [ "ptpd", "-f", files["ptp"]["log"], "-l", files["ptp"]["lock"], "-S", files["ptp"]["statistics"] ]
 
     method = root.find("time-source").find("method").text if root.find("time-source").find("method") is not None else "none"
     log("configuring method %s..." % method)
@@ -81,7 +81,7 @@ def parse_config(args):
     elif method == "ptp":
         ptp = root.find("time-source").find("ptp-source")
         interface = ptp.find("interface").text
-        ptp_args += [ "-s", "-y", "-r", "0" ]
+        ptp_args += [ "-i", interface, "-s", "-y", "-r", "0" ]
     else:
         log("unknown method.")
         return None
@@ -99,7 +99,7 @@ def parse_config(args):
         # TODO: error if ptp source
         log("configuring ptp distribution...")
         interface = ptp_dist.find("interface").text
-        ptp_args += [ "-M", "-n" ]
+        ptp_args += [ "-i", interface, "-M", "-n" ]
 
     ntp = { "files": files["ntp"], "config": ntp_config, "args": ntp_args } if ntp_config else None
     ptp = { "files": files["ptp"], "args": ptp_args } if ptp_args else None
