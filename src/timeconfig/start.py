@@ -73,7 +73,7 @@ def parse_config(args):
                     ntp_config.append("fudge 127.127.20.%s flag1 1" % unit) # enable PPS
                     ntp_config.append("fudge 127.127.20.%s flag3 1" % unit) # kernel discipline
                     # TODO: delay option
-                    ntp_config.append("fudge 127.127.20.%s time2 0.4" % unit) # serial delay
+                    ntp_config.append("fudge 127.127.20.%s time2 0.452" % unit) # serial delay
                 else:
                     log("unknown reference clock.")
                     return None
