@@ -110,6 +110,11 @@ def parse_config(args):
                         log("symlink %s to /dev/gpspps%d" % (pps_device, unit))
                         if not args.dry_run: os.symlink(pps_device, "/dev/gpspps%d" % unit)
                     
+                    if init_script:
+                        log("execute init-script...")
+                        if not args.dry_run: subprocess.call("cat init_script > %s" % device, shell=True)
+                        if not args.dry_run: subprocess.call("stty -F %s raw %s cs8 clocal -cstopb" % (device, baud))
+                    
                     ntp_config.append("server 127.127.20.%d mode %d minpoll 4 maxpoll 4%s" % (unit, mode, prefer))
                     #ntp_config.append("fudge 127.127.20.%d stratum %s" % (unit, stratum))
                     if pps_device is not None: ntp_config.append("fudge 127.127.20.%d flag1 1" % unit) # enable PPS
