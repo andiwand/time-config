@@ -98,7 +98,7 @@ def parse_config(args):
                     
                     serial_offset = source.find("serial-offset").text if source.find("serial-offset") is not None else "0"
                     baud = source.find("baud").text if source.find("baud") is not None else "9600"
-                    sentence = source.find("sentense").text if source.find("sentence") is not None else "$GPZDG"
+                    sentence = source.find("sentence").text if source.find("sentence") is not None else "$GPZDG"
                     mode = baud_map[baud] | sentence_map[sentence]
                     
                     log("symlink %s to /dev/gps%d" % (device, unit))
