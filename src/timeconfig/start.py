@@ -109,7 +109,7 @@ def parse_config(args):
                     
                     if init_script:
                         log("execute init-script...")
-                        if not args.dry_run: subprocess.call(init_script, shell=True)
+                        if not args.dry_run: subprocess.call([init_script, device, pps_device])
                     
                     ntp_config.append("server 127.127.20.%d mode %d minpoll 4 maxpoll 4%s" % (unit, mode, prefer))
                     #ntp_config.append("fudge 127.127.20.%d stratum %s" % (unit, stratum))
