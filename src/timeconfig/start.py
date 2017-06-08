@@ -110,7 +110,7 @@ def parse_config(args):
                     if init_script:
                         log("execute init-script...")
                         if not args.dry_run: subprocess.call("cat %s > %s" % (init_script, device), shell=True)
-                        if not args.dry_run: subprocess.call("/bin/stty -F %s raw %s cs8 clocal -cstopb" % (device, baud))
+                        if not args.dry_run: subprocess.call("/bin/stty -F %s raw %s cs8 clocal -cstopb" % (device, baud), shell=True)
                     
                     ntp_config.append("server 127.127.20.%d mode %d minpoll 4 maxpoll 4%s" % (unit, mode, prefer))
                     #ntp_config.append("fudge 127.127.20.%d stratum %s" % (unit, stratum))
