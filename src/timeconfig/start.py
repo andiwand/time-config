@@ -99,10 +99,7 @@ def parse_config(args):
                     serial_offset = source.find("serial-offset").text if source.find("serial-offset") is not None else "0"
                     baud = source.find("baud").text if source.find("baud") is not None else "9600"
                     sentence = source.find("sentense").text if source.find("sentence") is not None else "$GPZDG"
-                    
-                    baud = baud_map[baud]
-                    sentence = sentence_map[sentence]
-                    mode = sentence | baud
+                    mode = baud_map[baud] | sentence_map[sentence]
                     
                     log("symlink %s to /dev/gps%d" % (device, unit))
                     if not args.dry_run: os.symlink(device, "/dev/gps%d" % unit)
@@ -112,7 +109,7 @@ def parse_config(args):
                     
                     if init_script:
                         log("execute init-script...")
-                        if not args.dry_run: subprocess.call("cat init_script > %s" % device, shell=True)
+                        if not args.dry_run: subprocess.call("cat %s > %s" % (init_script, device), shell=True)
                         if not args.dry_run: subprocess.call("stty -F %s raw %s cs8 clocal -cstopb" % (device, baud))
                     
                     ntp_config.append("server 127.127.20.%d mode %d minpoll 4 maxpoll 4%s" % (unit, mode, prefer))
