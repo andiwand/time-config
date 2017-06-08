@@ -91,8 +91,8 @@ def parse_config(args):
                     # http://doc.ntp.org/current-stable/drivers/driver20.html
                     
                     device = source.find("device").text
-                    pps_device = source.find("pps-device").text if source.find("pps-device") is not None else None
-                    init_script = source.find("init-script").text if source.find("init-script") is not None else None
+                    pps_device = source.find("pps-device").text if source.find("pps-device") is not None else ""
+                    init_script = source.find("init-script").text if source.find("init-script") is not None else ""
                     unit = next_unit["nmea"]
                     next_unit["nmea"] += 1
                     
@@ -103,13 +103,13 @@ def parse_config(args):
                     
                     log("symlink %s to /dev/gps%d" % (device, unit))
                     if not args.dry_run and not os.path.exists("/dev/gps%d" % unit): os.symlink(device, "/dev/gps%d" % unit)
-                    if pps_device is not None:
+                    if pps_device:
                         log("symlink %s to /dev/gpspps%d" % (pps_device, unit))
                         if not args.dry_run and not os.path.exists("/dev/gpspps%d" % unit): os.symlink(pps_device, "/dev/gpspps%d" % unit)
                     
                     if init_script:
                         log("execute init-script...")
-                        if not args.dry_run: subprocess.call([init_script, device, pps_device if not None else ""])
+                        if not args.dry_run: subprocess.call([init_script, device, pps_device])
                     
                     ntp_config.append("server 127.127.20.%d mode %d minpoll 4 maxpoll 4%s" % (unit, mode, prefer))
                     #ntp_config.append("fudge 127.127.20.%d stratum %s" % (unit, stratum))
