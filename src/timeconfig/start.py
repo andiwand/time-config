@@ -82,7 +82,7 @@ def parse_config(args):
                     
                     if device != "/dev/pps%d" % unit:
                         log("symlink %s to /dev/pps%d" % (device, unit))
-                        if not args.dry_run: os.symlink(device, "/dev/pps%d" % unit)
+                        if not args.dry_run and not os.path.exists("/dev/pps%d" % unit): os.symlink(device, "/dev/pps%d" % unit)
                     
                     ntp_config.append("server 127.127.22.%d minpoll 4 maxpoll 4%s" % (unit, prefer))
                     #ntp_config.append("fudge 127.127.22.%d stratum %s" % (unit, stratum))
@@ -102,15 +102,14 @@ def parse_config(args):
                     mode = baud_map[baud] | sentence_map[sentence]
                     
                     log("symlink %s to /dev/gps%d" % (device, unit))
-                    if not args.dry_run: os.symlink(device, "/dev/gps%d" % unit)
+                    if not args.dry_run and not os.path.exists("/dev/gps%d" % unit): os.symlink(device, "/dev/gps%d" % unit)
                     if pps_device is not None:
                         log("symlink %s to /dev/gpspps%d" % (pps_device, unit))
-                        if not args.dry_run: os.symlink(pps_device, "/dev/gpspps%d" % unit)
+                        if not args.dry_run and not os.path.exists("/dev/gpspps%d" % unit): os.symlink(pps_device, "/dev/gpspps%d" % unit)
                     
                     if init_script:
                         log("execute init-script...")
-                        if not args.dry_run: subprocess.call("cat %s > %s" % (init_script, device), shell=True)
-                        if not args.dry_run: subprocess.call("/bin/stty -F %s raw %s cs8 clocal -cstopb" % (device, baud), shell=True)
+                        if not args.dry_run: subprocess.call(init_script, shell=True)
                     
                     ntp_config.append("server 127.127.20.%d mode %d minpoll 4 maxpoll 4%s" % (unit, mode, prefer))
                     #ntp_config.append("fudge 127.127.20.%d stratum %s" % (unit, stratum))
