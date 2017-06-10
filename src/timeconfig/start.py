@@ -96,7 +96,7 @@ def parse_config(args):
                     unit = next_unit["nmea"]
                     next_unit["nmea"] += 1
                     
-                    serial_offset = source.find("serial-offset").text if source.find("serial-offset") is not None else "0"
+                    serial_offset = source.find("serial-offset").text if source.find("serial-offset") is not None else "0.0"
                     baud = source.find("baud").text if source.find("baud") is not None else "9600"
                     sentence = source.find("sentence").text if source.find("sentence") is not None else "$GPZDG"
                     mode = baud_map[baud] | sentence_map[sentence]
@@ -118,6 +118,27 @@ def parse_config(args):
                     if pps_device is not None: ntp_config.append("fudge 127.127.20.%d flag1 1" % unit) # enable PPS
                     ntp_config.append("fudge 127.127.20.%d flag3 1" % unit) # kernel discipline
                     ntp_config.append("fudge 127.127.20.%d time2 %s" % (unit, serial_offset)) # serial offset
+                elif driver == "shm":
+                    # http://doc.ntp.org/current-stable/drivers/driver28.html
+                    
+                    unit = source.find("unit").text
+                    stratum = source.find("stratum").text
+                    offset = source.find("offset").text if source.find("offset") is not None else "0.0"
+                    
+                    ntp_config.append("server 127.127.28.%s minpoll 4 maxpoll 4%s" % (unit, prefer))
+                    ntp_config.append("fudge 127.127.28.%s time1 %s" % (unit, offset))
+                elif driver == "gpsd":
+                    # http://doc.ntp.org/current-stable/drivers/driver28.html
+                    
+                    pps = True if source.find("pps") is not None else False
+                    offset = source.find("offset").text if source.find("offset") is not None else "0.0"
+                    
+                    unit = 1 if pps else 0
+                    refid = "PPS" if pps else "GPS"
+                    
+                    ntp_config.append("server 127.127.28.%d minpoll 4 maxpoll 4%s" % (unit, prefer))
+                    ntp_config.append("fudge 127.127.28.%d time1 %s" % (unit, offset))
+                    ntp_config.append("fudge 127.127.28.%d refid %s" % (unit, refid))
                 else:
                     log("unknown reference clock.")
                     return None
