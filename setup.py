@@ -8,7 +8,7 @@ setup(
     author="Andreas Stefl",
     install_requires=[],
     author_email="stefl.andreas@gmail.com",
-    description="ntp/gps/ptp startup script",
+    description="Startup script for ntp/ptp/gps.",
     long_description="",
     package_dir={"": "src"},
     packages=["timeconfig"],

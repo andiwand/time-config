@@ -203,7 +203,7 @@ def start_ptp(args, config):
     return err
 
 def parse_args(args=None):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="startup script for ntp/ptp/gps")
     parser.add_argument("config", help="path to config")
     parser.add_argument("--dry-run", help="don't start services", action="store_true")
     return parser.parse_args(args)
