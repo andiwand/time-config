@@ -8,7 +8,7 @@ pip install https://github.com/andiwand/time-config/archive/master.zip
 
 ## time-config
 ```
-usage: start.py [-h] [--dry-run] config
+usage: time-config [-h] [--dry-run] config
 
 startup script for ntp/ptp/gps
 
